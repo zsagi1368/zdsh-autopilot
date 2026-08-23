@@ -11,8 +11,8 @@
 
 | 里程碑 | 状态 | 出口证据 |
 |---|---|---|
-| M0′ 独立脚手架 | 🟡 进行中 | 双面构建/vitest/CI/边界脚本/AGENTS/STATE 就位；门禁首绿；GitHub 建仓首推 |
-| M1 kernel | ⬜ 未开始 | coordinator/ledger/audit/redact/probes/failures/defaults + facade 冻结 + 单测 |
+| M0′ 独立脚手架 | ✅ 完成 2026-08-24 | 建仓+首推 https://github.com/zsagi1368/zdsh-autopilot ；lint/typecheck/test/build 全绿；双面产物 lib/+dist/client.cjs 验证 |
+| M1 kernel | 🟡 进行中 | coordinator/ledger/audit/redact/probes/failures/defaults + facade 冻结 + 单测 |
 | M2 continue | ⬜ | 状态机全覆盖 + eval/cases/continue ≥12 用例 |
 | M3 guard | ⬜ | 词法/路径/工件/分类/越权 + eval/cases/guard ≥18 用例 |
 | M4 review | ⬜ | 应答矩阵 ≥38 例 + 熔断/回喂 + eval/cases/review ≥14 用例 |
@@ -32,4 +32,4 @@
 
 ## 门禁速查
 
-`pnpm ci`（= lint + typecheck + test + build）；eval 引擎落地后并入。提交前必跑。
+`pnpm verify`（= lint + typecheck + test + build；勿用 `pnpm ci`，那是 pnpm 内置冻结安装）；eval 引擎落地后并入。提交前必跑。
