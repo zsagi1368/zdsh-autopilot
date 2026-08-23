@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  gate:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install pnpm
+        run: npm install -g pnpm@11
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Lint (boundaries + oxlint)
+        run: pnpm lint
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Unit & behavior tests
+        run: pnpm test
+      - name: Build (host + client faces)
+        run: pnpm build
+      # eval suite joins the gate once the offline engine lands (M1/M6).

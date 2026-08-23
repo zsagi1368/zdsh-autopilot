@@ -1,0 +1,9 @@
+packages:
+  - .
+# The pinned @deepseek-ai/* family keeps an old dist-tag on `latest`; exclude the
+# whole scope from minimumReleaseAge so exact rc pins resolve regardless of clock.
+minimumReleaseAgeExclude:
+  - '@deepseek-ai/*'
+allowBuilds:
+  # tsdown pulls esbuild; its lifecycle script only restores a shipped prebuilt binary.
+  esbuild: true
