@@ -91,7 +91,7 @@ function makeHarness(overrides?: { maxConsecutive?: number; graceMs?: number }) 
 
   function flushTimers(): void {
     // Fire every due timer once; new timers armed by handlers wait for the next flush.
-    for (const entry of [...timers]) {
+    for (const entry of Array.from(timers)) {
       if (!entry.cancelled && entry.at <= clock.now()) {
         entry.cancelled = true;
         entry.fn();

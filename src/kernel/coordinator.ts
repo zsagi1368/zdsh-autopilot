@@ -119,7 +119,7 @@ export class AutomationCoordinator {
 
     // Fan out to every enabled module.
     const outcomes: DispatchOutcome[] = [];
-    for (const [moduleId, entry] of this.handlers) {
+    for (const entry of this.handlers.values()) {
       if (!entry.enabled) continue;
       try {
         entry.handler(event, this.view);

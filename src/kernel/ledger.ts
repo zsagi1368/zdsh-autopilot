@@ -133,12 +133,12 @@ export class SessionLedger {
     return this.consecutiveResumes;
   }
 
-  readyAt(now: number): number {
+  readyAt(): number {
     return this.lastAttemptAt + this.currentWindow();
   }
 
   inCooldown(now: number): boolean {
-    return now < this.readyAt(now);
+    return now < this.readyAt();
   }
 }
 
@@ -242,7 +242,8 @@ export class LedgerHub {
 
   closeSession(sessionId: string): void {
     this.sessions.delete(sessionId);
-    for (const key of [...this.turns.keys()]) {
+    // Deleting during Map iteration is safe per spec and cannot resurface keys.
+    for (const key of this.turns.keys()) {
       if (key.startsWith(`${sessionId}#`)) this.turns.delete(key);
     }
   }
