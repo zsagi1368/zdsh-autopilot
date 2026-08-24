@@ -190,7 +190,7 @@ export function createReviewModule(deps: CreateReviewModuleDeps) {
     const reviewerSessionTag = `reviewer:${verdictId}`;
     adapters.markReviewerSession(reviewerSessionTag);
     try {
-      let timedOut = false;
+      let timedOut = false as boolean;
       const timer = setTimeout(() => {
         timedOut = true;
       }, Math.max(1000, options.reviewerTimeoutMs));

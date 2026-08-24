@@ -65,6 +65,11 @@ interface BridgeResponseLike {
   json: unknown;
 }
 
+/** Coerce an unknown session-event field to display text without object leakage. */
+function asString(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
 function mount(ctx: AutopilotHostContext): MountedRuntime {
   const getService = <T>(key: string): T | undefined => {
     try {
@@ -259,7 +264,7 @@ function mount(ctx: AutopilotHostContext): MountedRuntime {
         continueModule.handleTurnStart(sessionId);
         break;
       case 'turn/end': {
-        const rawReason = String(payload.data?.['reason'] ?? '');
+        const rawReason = asString(payload.data?.['reason']);
         const known = ['completed', 'error', 'max-tokens', 'aborted', 'blocked'].includes(rawReason)
           ? (rawReason as 'completed' | 'error' | 'max-tokens' | 'aborted' | 'blocked')
           : 'completed';
@@ -278,16 +283,16 @@ function mount(ctx: AutopilotHostContext): MountedRuntime {
         continueModule.handleUserMessage(sessionId);
         break;
       case 'assistant/message':
-        continueModule.handleAssistantMessage(sessionId, String(payload.data?.['text'] ?? ''));
+        continueModule.handleAssistantMessage(sessionId, asString(payload.data?.['text']));
         break;
       case 'approval/asked': {
-        const callId = String(payload.data?.['callId'] ?? '');
+        const callId = asString(payload.data?.['callId']);
         pendingAsks.add(callId);
         kernel.coordinator.dispatch({
           kind: 'approval-pending',
           sessionId,
           callId,
-          toolName: String(payload.data?.['toolName'] ?? ''),
+          toolName: asString(payload.data?.['toolName']),
         });
         break;
       }
@@ -295,7 +300,7 @@ function mount(ctx: AutopilotHostContext): MountedRuntime {
         kernel.coordinator.dispatch({
           kind: 'approval-resolved',
           sessionId,
-          callId: String(payload.data?.['callId'] ?? ''),
+          callId: asString(payload.data?.['callId']),
         });
         break;
       default:

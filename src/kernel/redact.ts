@@ -142,7 +142,7 @@ export function redact(value: unknown, profile: RedactProfile = 'standard'): unk
       return out;
     }
     // Functions/symbols/etc. have no business crossing a model boundary.
-    return String(node);
+    return Object.prototype.toString.call(node);
   }
 
   return walk(value, 0);

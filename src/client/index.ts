@@ -27,9 +27,12 @@ export interface ConsoleClientAdapters {
 export function createConsoleFiber(adapters: ConsoleClientAdapters) {
   let locale: ((key: LocaleKey, params?: Record<string, string>) => string) | undefined;
 
+  function lookup(dict: Record<string, string | undefined>, key: LocaleKey): string | undefined {
+    return dict[key];
+  }
+
   function t(key: LocaleKey, params?: Record<string, string>): string {
-    const dict: Record<string, string> = zh;
-    const template = dict[key] ?? en[key] ?? key;
+    const template = lookup(zh, key) ?? lookup(en, key) ?? key;
     if (!params) return template;
     return template.replace(/\{(\w+)\}/g, (_, k: string) => params[k] ?? `{${k}}`);
   }
@@ -61,7 +64,7 @@ export function createConsoleFiber(adapters: ConsoleClientAdapters) {
       effect?(fn: () => void | (() => void), name: string): void;
     }): void {
       ctx.locale?.register(NS, { zh, en });
-      locale = ctx.locale?.bind(NS) as typeof locale;
+      locale = ctx.locale?.bind(NS);
 
       // Settings card into the keyed per-plugin slot (host renders the form).
       ctx.slots?.inject('settings.plugin.item', () => ({

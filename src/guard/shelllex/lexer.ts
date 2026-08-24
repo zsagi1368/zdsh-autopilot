@@ -59,11 +59,11 @@ export function decomposeBash(line: string): Decomposition {
       i += 1;
       while (i < line.length && line[i] !== quote) {
         if (quote === '"' && line[i] === '\\' && i + 1 < line.length) {
-          current += line[i] + (line[i + 1] ?? '');
+          current += line.charAt(i) + (line[i + 1] ?? '');
           i += 2;
           continue;
         }
-        current += line[i];
+        current += line.charAt(i);
         i += 1;
       }
       if (i >= line.length) return { segments: [], opaqueReason: 'unbalanced-quote' };
@@ -88,7 +88,7 @@ export function decomposeBash(line: string): Decomposition {
       segments.push({ kind: 'opaque', text: rest.trim(), joiner: lastJoiner || undefined });
       return { segments };
     }
-    current += ch;
+    current += ch ?? '';
     i += 1;
   }
   flush('');
@@ -117,7 +117,7 @@ export function decomposePwsh(line: string): Decomposition {
       current += ch;
       i += 1;
       while (i < line.length && line[i] !== quote) {
-        current += line[i];
+        current += line.charAt(i);
         i += 1;
       }
       if (i >= line.length) return { segments: [], opaqueReason: 'unbalanced-quote' };
@@ -133,11 +133,11 @@ export function decomposePwsh(line: string): Decomposition {
       continue;
     }
     // Subexpressions and splatting stay opaque.
-    if (/^\(\s*\(|^\$\(/.test(rest) || /(^|\s)@\w+/.test(ch + rest.slice(1, 8)) && ch === '@') {
+    if (/^\(\s*\(|^\$\(/.test(rest) || /(^|\s)@\w+/.test((ch ?? '') + rest.slice(1, 8)) && ch === '@') {
       segments.push({ kind: 'opaque', text: rest.trim(), joiner: lastJoiner || undefined });
       return { segments };
     }
-    current += ch;
+    current += ch ?? '';
     i += 1;
   }
   flush('');
