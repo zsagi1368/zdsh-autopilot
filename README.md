@@ -4,7 +4,7 @@
 [![release](https://img.shields.io/github/v/tag/zsagi1368/zdsh-autopilot?label=release&sort=semver)](https://github.com/zsagi1368/zdsh-autopilot/releases)
 [![license](https://img.shields.io/github/license/zsagi1368/zdsh-autopilot)](LICENSE)
 
-**zDSH AutoPilot（自动领航）** — a unified automation engine plugin for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). Three cooperating capabilities behind one kernel and one console:
+**zDSH AutoPilot（自动领航）** — the unified automation engine for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). Three cooperating capabilities behind one kernel and one console:
 
 | | Module | What it does |
 |---|---|---|
@@ -31,13 +31,17 @@ Everything shares one accounting model (attempts are booked before side effects;
 
 | | |
 |---|---|
-| DeepSeek Harness | `>= 0.1.0-rc.2`, `< 0.2.0` (works on upstream and enhanced branches) |
+| DeepSeek Harness | `>= 0.1.0-rc.2`, `< 0.2.0` |
 | Node (host) | `>= 22` |
 | Platforms | Windows / macOS / Linux (path judgment hardened for Windows first) |
 
 All runtime host capabilities are feature-detected with graceful degradation; a missing service disables its wiring instead of failing startup.
 
 ## Install
+
+**zDSH branch — nothing to do.** AutoPilot ships as a bundled extension of the [deepseek-harness-zDSH](https://github.com/zsagi1368/deepseek-harness-zDSH) branch: install the branch and it is active out of the box, manageable from Settings → Plugins.
+
+**Upstream DSH or any other profile:**
 
 ```bash
 # from GitHub
@@ -47,7 +51,7 @@ dsh plugin --profile web add github:zsagi1368/zdsh-autopilot
 dsh plugin --profile web add link:/path/to/zdsh-autopilot
 ```
 
-Then restart your profile. Open **Settings → Plugins → AutoPilot**, pick a preset, done.
+Then open **Settings → Plugins → AutoPilot**, pick a preset, done.
 
 ## Usage
 
@@ -87,6 +91,8 @@ corpus/          extensible error-classification corpus
 ```
 
 Module boundaries are enforced in CI (`scripts/check-boundaries.mjs`): capability modules may import only the kernel facade and themselves. Each module directory is therefore extractable into a standalone plugin without refactoring.
+
+The same source tree powers both distributions — the zDSH monorepo vendored build and this standalone package — keeping behavior identical across them.
 
 ## Development
 

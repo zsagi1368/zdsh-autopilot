@@ -4,7 +4,7 @@
 [![release](https://img.shields.io/github/v/tag/zsagi1368/zdsh-autopilot?label=release&sort=semver)](https://github.com/zsagi1368/zdsh-autopilot/releases)
 [![license](https://img.shields.io/github/license/zsagi1368/zdsh-autopilot)](LICENSE)
 
-**zDSH AutoPilot（自动领航）** —— [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的统一自动化引擎插件。三个协同能力，共享一个内核与一个控制台：
+**zDSH AutoPilot（自动领航）** —— [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的统一自动化引擎。三个协同能力，共享一个内核与一个控制台：
 
 | | 模块 | 功能 |
 |---|---|---|
@@ -31,13 +31,17 @@
 
 | | |
 |---|---|
-| DeepSeek Harness | `>= 0.1.0-rc.2`，`< 0.2.0`（上游官方与增强分支均可） |
+| DeepSeek Harness | `>= 0.1.0-rc.2`，`< 0.2.0` |
 | Node（宿主） | `>= 22` |
 | 平台 | Windows / macOS / Linux（路径判定以 Windows 为一等公民硬化） |
 
 所有宿主能力均特性检测并优雅降级；缺失的服务只会关闭对应接线，绝不阻断启动。
 
 ## 安装
+
+**zDSH 分支——无需任何操作。** AutoPilot 作为 [deepseek-harness-zDSH](https://github.com/zsagi1368/deepseek-harness-zDSH) 分支的内置扩展随分支分发：装好分支即已启用，可在 设置 → 插件 中管理。
+
+**上游 DSH 或其他 profile：**
 
 ```bash
 # 从 GitHub 安装
@@ -47,7 +51,7 @@ dsh plugin --profile web add github:zsagi1368/zdsh-autopilot
 dsh plugin --profile web add link:/path/to/zdsh-autopilot
 ```
 
-重启 profile 后，打开 **设置 → 插件 → AutoPilot**，选择一个预设即可使用。
+然后打开 **设置 → 插件 → AutoPilot**，选择一个预设即可使用。
 
 ## 使用
 
@@ -87,6 +91,8 @@ corpus/          可扩展的错误分类语料
 ```
 
 模块边界由 CI 强制（`scripts/check-boundaries.mjs`）：能力模块只准依赖内核门面与自身。因此任一模块目录未来都可零重构地抽出为独立插件。
+
+同一份源码同时供给两种发行形态——zDSH 单仓 vendor 构建与本独立包——确保行为完全一致。
 
 ## 开发
 
