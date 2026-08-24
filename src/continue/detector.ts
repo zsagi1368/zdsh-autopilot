@@ -12,21 +12,21 @@
  *     because a skipped recovery is a lost turn while an extra prompt is cheap.
  */
 
-export type LiveEndReason = 'completed' | 'error' | 'max-tokens' | 'aborted' | 'blocked';
+export type LiveEndReason = 'completed' | 'error' | 'max-tokens' | 'aborted' | 'blocked'
 
 /** Reasons that may ever be resumed live. `interrupted` belongs to boot scan only. */
-export type ResumeEligibleReason = 'error' | 'max-tokens' | 'interrupted-boot-scan';
+export type ResumeEligibleReason = 'error' | 'max-tokens' | 'interrupted-boot-scan'
 
 export interface FailureInfo {
-  code?: string;
-  status?: number;
-  message?: string;
+  code?: string
+  status?: number
+  message?: string
 }
 
 export interface ClassifyPattern {
   /** Human-readable family name for audits and notifications. */
-  family: string;
-  re: RegExp;
+  family: string
+  re: RegExp
 }
 
 /** Built-in baseline corpus; extendable via configuration later (M5 settings). */
@@ -38,7 +38,7 @@ export const PERMANENT_FAILURE_PATTERNS: readonly ClassifyPattern[] = [
   { family: 'model', re: /\b(model|engine)\b.*\b(not[ _-]found|unknown|unsupported)\b|\bunknown\b.*\b(model|engine)\b/i },
   { family: 'context-overflow', re: /\b(context(_| )length|maximum context|too many tokens)\b/i },
   { family: 'invalid-request', re: /\b(invalid[_ ]request|bad[_ ]request)\b/i },
-];
+]
 
 export const TRANSIENT_HINT_PATTERNS: readonly RegExp[] = [
   /\bnetwork\b/i,
@@ -47,21 +47,21 @@ export const TRANSIENT_HINT_PATTERNS: readonly RegExp[] = [
   /\bsocket\b/i,
   /\bupstream\b/i,
   /\btemporar/i,
-];
+]
 
 function matchesPermanent(info: FailureInfo): ClassifyPattern | undefined {
   if (info.status === 401 || info.status === 403) {
-    return { family: 'auth-status', re: /./ };
+    return { family: 'auth-status', re: /./ }
   }
-  const haystack = `${info.code ?? ''} ${info.message ?? ''}`;
-  return PERMANENT_FAILURE_PATTERNS.find((p) => p.re.test(haystack));
+  const haystack = `${info.code ?? ''} ${info.message ?? ''}`
+  return PERMANENT_FAILURE_PATTERNS.find(p => p.re.test(haystack))
 }
 
 export interface DetectionOutcome {
-  action: 'schedule-resume' | 'skip';
+  action: 'schedule-resume' | 'skip'
   /** Populated when skipping: why this turn will not be resumed. */
-  skipReason?: 'permanent-failure' | 'not-eligible';
-  family?: string;
+  skipReason?: 'permanent-failure' | 'not-eligible'
+  family?: string
 }
 
 export function detectLive(
@@ -73,17 +73,17 @@ export function detectLive(
     case 'aborted':
     case 'blocked':
     case 'completed':
-      return { action: 'skip', skipReason: 'not-eligible' };
+      return { action: 'skip', skipReason: 'not-eligible' }
     case 'max-tokens':
-      return { action: 'schedule-resume' };
+      return { action: 'schedule-resume' }
     case 'error': {
-      if (!options.classifyErrors) return { action: 'schedule-resume' };
-      const hit = failure ? matchesPermanent(failure) : undefined;
-      if (hit) return { action: 'skip', skipReason: 'permanent-failure', family: hit.family };
-      return { action: 'schedule-resume' };
+      if (!options.classifyErrors) return { action: 'schedule-resume' }
+      const hit = failure ? matchesPermanent(failure) : undefined
+      if (hit) return { action: 'skip', skipReason: 'permanent-failure', family: hit.family }
+      return { action: 'schedule-resume' }
     }
     default:
-      return { action: 'skip', skipReason: 'not-eligible' };
+      return { action: 'skip', skipReason: 'not-eligible' }
   }
 }
 
@@ -93,6 +93,6 @@ export function detectBootScan(
   failure: FailureInfo | undefined,
   options: { classifyErrors: boolean },
 ): DetectionOutcome {
-  if (reason === 'interrupted') return { action: 'schedule-resume' };
-  return detectLive(reason, failure, options);
+  if (reason === 'interrupted') return { action: 'schedule-resume' }
+  return detectLive(reason, failure, options)
 }

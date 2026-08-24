@@ -3,7 +3,7 @@
  * browser fiber). zh is the source of truth for the KEY SET; en must satisfy
  * the same keys (CI-checked by tests/console/locale parity spec).
  */
-export const NS = 'autopilot';
+export const NS = 'autopilot'
 
 export const zh = {
   'tab.label': 'AutoPilot 自动领航',
@@ -37,9 +37,9 @@ export const zh = {
   'notify.resumed.body': '{session} 第 {attempt} 次续跑已发送。',
   'notify.skipped.title': '续跑被跳过',
   'notify.denied.title': '操作已被复核驳回',
-} as const;
+} as const
 
-export type LocaleKey = keyof typeof zh;
+export type LocaleKey = keyof typeof zh
 
 export const en: Record<LocaleKey, string> = {
   'tab.label': 'AutoPilot',
@@ -73,4 +73,4 @@ export const en: Record<LocaleKey, string> = {
   'notify.resumed.body': 'Attempt {attempt} sent for {session}.',
   'notify.skipped.title': 'Resume skipped',
   'notify.denied.title': 'Action denied by reviewer',
-};
+}

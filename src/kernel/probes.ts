@@ -12,35 +12,35 @@
  */
 
 export interface ProbeResult {
-  ok: boolean;
-  degraded: boolean;
-  detail?: string;
+  ok: boolean
+  degraded: boolean
+  detail?: string
 }
 
 export interface Assumption {
-  id: string;
+  id: string
   /** What we assume about the host, phrased as a falsifiable statement. */
-  description: string;
+  description: string
   /** Level-1 precheck; when absent the probe runs directly. */
-  precheck?: () => boolean | string;
+  precheck?: () => boolean | string
   /** Level-2 first-call probe; returns detail on failure. */
-  probe?: () => true | string;
+  probe?: () => true | string
 }
 
 export interface AssumptionStatus {
-  id: string;
-  state: 'unprobed' | 'available' | 'degraded' | 'unavailable';
-  detail?: string;
+  id: string
+  state: 'unprobed' | 'available' | 'degraded' | 'unavailable'
+  detail?: string
 }
 
 export class ProbeRegistry {
-  private assumptions = new Map<string, Assumption>();
-  private statuses = new Map<string, AssumptionStatus>();
+  private assumptions = new Map<string, Assumption>()
+  private statuses = new Map<string, AssumptionStatus>()
 
   register(assumption: Assumption): void {
-    this.assumptions.set(assumption.id, assumption);
+    this.assumptions.set(assumption.id, assumption)
     if (!this.statuses.has(assumption.id)) {
-      this.statuses.set(assumption.id, { id: assumption.id, state: 'unprobed' });
+      this.statuses.set(assumption.id, { id: assumption.id, state: 'unprobed' })
     }
   }
 
@@ -49,61 +49,61 @@ export class ProbeRegistry {
    * Safe to call repeatedly; only the first run performs work.
    */
   probe(id: string): AssumptionStatus {
-    const cached = this.statuses.get(id);
-    if (cached && cached.state !== 'unprobed') return cached;
+    const cached = this.statuses.get(id)
+    if (cached && cached.state !== 'unprobed') return cached
 
-    const assumption = this.assumptions.get(id);
+    const assumption = this.assumptions.get(id)
     if (!assumption) {
-      const status: AssumptionStatus = { id, state: 'unavailable', detail: 'unknown assumption' };
-      this.statuses.set(id, status);
-      return status;
+      const status: AssumptionStatus = { id, state: 'unavailable', detail: 'unknown assumption' }
+      this.statuses.set(id, status)
+      return status
     }
 
     if (assumption.precheck) {
-      let precheck: boolean | string;
+      let precheck: boolean | string
       try {
-        precheck = assumption.precheck();
+        precheck = assumption.precheck()
       } catch (error) {
-        precheck = error instanceof Error ? error.message : String(error);
+        precheck = error instanceof Error ? error.message : String(error)
       }
       if (precheck !== true) {
         const status: AssumptionStatus = {
           id,
           state: 'degraded',
           detail: `precheck failed${typeof precheck === 'string' ? `: ${precheck}` : ''}`,
-        };
-        this.statuses.set(id, status);
-        return status;
+        }
+        this.statuses.set(id, status)
+        return status
       }
     }
 
     if (!assumption.probe) {
-      const status: AssumptionStatus = { id, state: 'available' };
-      this.statuses.set(id, status);
-      return status;
+      const status: AssumptionStatus = { id, state: 'available' }
+      this.statuses.set(id, status)
+      return status
     }
 
-    let probeResult: true | string;
+    let probeResult: true | string
     try {
-      probeResult = assumption.probe();
+      probeResult = assumption.probe()
     } catch (error) {
-      probeResult = error instanceof Error ? error.message : String(error);
+      probeResult = error instanceof Error ? error.message : String(error)
     }
     const status: AssumptionStatus =
       probeResult === true
         ? { id, state: 'available' }
-        : { id, state: 'degraded', detail: probeResult };
-    this.statuses.set(id, status);
-    return status;
+        : { id, state: 'degraded', detail: probeResult }
+    this.statuses.set(id, status)
+    return status
   }
 
   status(id: string): AssumptionStatus {
     return (
       this.statuses.get(id) ?? { id, state: 'unavailable', detail: 'not registered' }
-    );
+    )
   }
 
   all(): AssumptionStatus[] {
-    return [...this.statuses.values()];
+    return [...this.statuses.values()]
   }
 }

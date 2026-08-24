@@ -23,5 +23,5 @@ export function buildGuidanceText(): string {
     '- When an action is denied, choose a safer alternative or ask the user;',
     '  never attempt to bypass the denial.',
     '</auto_mode_policy>',
-  ].join('\n');
+  ].join('\n')
 }
