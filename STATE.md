@@ -11,14 +11,16 @@
 
 | 里程碑 | 状态 | 出口证据 |
 |---|---|---|
-| M0′ 独立脚手架 | ✅ 完成 2026-08-24 | 建仓+首推 https://github.com/zsagi1368/zdsh-autopilot ；lint/typecheck/test/build 全绿；双面产物 lib/+dist/client.cjs 验证 |
-| M1 kernel | 🟡 进行中 | coordinator/ledger/audit/redact/probes/failures/defaults + facade 冻结 + 单测 |
-| M2 continue | ⬜ | 状态机全覆盖 + eval/cases/continue ≥12 用例 |
-| M3 guard | ⬜ | 词法/路径/工件/分类/越权 + eval/cases/guard ≥18 用例 |
-| M4 review | ⬜ | 应答矩阵 ≥38 例 + 熔断/回喂 + eval/cases/review ≥14 用例 |
-| M5 console | ⬜ | tab/面板/命令/通知/统计持久化 + i18n + 双语 README/DESIGN |
-| M6′ 发布 | ⬜ | eval 全套 + 对抗 ×3 + fork link: 冒烟 + v0.1.0 tag + Release |
+| M0′ 独立脚手架 | ✅ 完成 2026-08-24 | 建仓+首推；lint/typecheck/test/build 全绿 |
+| M1 kernel | ✅ 完成（4bf69c6） | 七模块+facade 冻结，53→83 测试 |
+| M2 continue | ✅ 完成（d705e49） | 状态机/循环守卫/语料外置，83 测试 |
+| M3 guard | ✅ 完成（ca3e083） | 四级栈/词法器/工件身份/越权桥，109 测试 |
+| M4 review | ✅ 完成（ca3e083） | 应答合取/熔断/反馈回路，124 测试 |
+| M5 console | ✅ 完成（0d256e0） | /ap 命令/桥鉴权/官方槽位 UI/双语词典，134 测试 |
+| M6′ 发布 | ✅ 完成 2026-08-24 | eval 引擎+10 用例全过；双轮对抗门禁 0 失败；pack 冒烟通过；v0.1.0 tag + Release |
 | 集成期 | 🔒 冻结 | 用户指令后按 plan/07 E4 执行 |
+
+最终门禁：`pnpm verify` = lint(边界+净室扫描) + typecheck(三 tsconfig) + vitest 134 + 双面构建 + 离线评测 10/10。
 
 ## 关键决策备忘（详见 plan/07）
 

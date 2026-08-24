@@ -44,11 +44,9 @@
     "cordis.patch.yml",
     "README.md",
     "README.zh.md",
+    "docs/DESIGN.md",
     "LICENSE"
   ],
-  "bin": {
-    "zdsh-autopilot-eval": "./bin/autopilot-eval.mjs"
-  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
@@ -169,9 +167,9 @@
     "build:client": "tsdown",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.client.json --noEmit && tsc -p tsconfig.tests.json --noEmit",
     "test": "vitest run",
-    "lint": "node scripts/check-boundaries.mjs && oxlint src tests eval scripts bin",
-    "eval": "node bin/autopilot-eval.mjs run eval/cases",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "lint": "node scripts/check-boundaries.mjs && oxlint src tests eval scripts",
+    "eval": "tsx bin/contracts.ts",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm eval"
   },
   "packageManager": "pnpm@11.17.0+sha512.cca3cea332ad254bb84145f966d19f4879615210346fc92c79a047f23a0d7b3cca3c3792f0076ba1f1831d277efbcf0a9119b31a9a60eca7fb3d6231f331ef72"
 }
