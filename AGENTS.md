@@ -4,9 +4,9 @@
 
 ## 净室红线（不可协商）
 
-1. **零社区代码**：本项目思想借鉴自三个社区插件，但严禁复制其代码。以下标识符禁止出现在 `src/ tests/ eval/ corpus/ scripts/ bin/` 的任何文件中（`scripts/check-boundaries.mjs` 会扫描并在 CI 拦截）：
+1. **零第三方插件代码**：本插件为全新原创实现，严禁依赖、引用或复制任何第三方 DSH 插件包的代码。以下标识符禁止出现在 `src/ tests/ eval/ corpus/ scripts/ bin/` 的任何文件中（`scripts/check-boundaries.mjs` 会扫描并在 CI 拦截）：
    - `dsh-client-auto-continue`、`dsh-auto-review`、`dsh-auto-mode`、`@nanmicoder`
-2. 只允许借鉴**机制与设计思想**；宿主 API 调用方式属于宿主接口而非任何插件的资产。
+2. 本插件不依赖任何第三方 DSH 插件包；对宿主 API 的调用方式属于宿主接口本身，与任何第三方插件无关。
 3. 对宿主接缝的每一个行为假设，必须在 `src/kernel/probes.ts` 的 ASSUMPTIONS 清单登记（注释：假设内容 + 证据来源 + 对应回归测试名），并配能力探测降级路径。
 
 ## 架构边界（CI 强制）

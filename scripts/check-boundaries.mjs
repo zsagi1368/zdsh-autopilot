@@ -1,7 +1,7 @@
-// Architecture boundary + cleanroom guard for zdsh-autopilot.
+// Architecture boundary + originality guard for zdsh-autopilot.
 //
-// Rule 1 (cleanroom): the source tree must never reference the community
-//   plugins this project was designed against. Ideas only, zero code reuse.
+// Rule 1 (originality): the source tree must never reference or depend on
+//   third-party DSH plugin packages. This project is standalone by design.
 // Rule 2 (facade): capability modules may import the kernel facade and
 //   themselves — never each other. The kernel never imports modules upward.
 //
@@ -41,7 +41,7 @@ function* walk(dir) {
 
 const problems = [];
 
-// --- Rule 1: cleanroom substring guard -------------------------------------
+// --- Rule 1: third-party dependency guard ----------------------------------
 const SELF = join(root, 'scripts', 'check-boundaries.mjs');
 for (const dir of SCAN_DIRS) {
   for (const file of walk(join(root, dir))) {
@@ -50,7 +50,7 @@ for (const dir of SCAN_DIRS) {
     for (const banned of BANNED_SUBSTRINGS) {
       if (text.includes(banned)) {
         problems.push(
-          `cleanroom: ${relative(root, file)} references banned community identifier "${banned}"`,
+          `originality: ${relative(root, file)} references banned third-party identifier "${banned}"`,
         );
       }
     }

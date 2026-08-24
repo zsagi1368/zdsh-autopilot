@@ -38,4 +38,4 @@ First public release of the unified automation engine. Three capabilities behind
 - Browser fiber registering locale + settings card + session panel through official slots only — zero DOM scraping.
 - zh/en locale dictionaries with CI-enforced key parity.
 - Offline behavior-contract harness: YAML cases drive real module factories through scripted adapters (no API key), exit code gates CI. 10 cases shipped.
-- 134 unit/behavior tests; architecture boundary + clean-room guards in lint; dual-face build (host ESM `lib/`, browser classic-script `dist/client.cjs`).
+- 134 unit/behavior tests; architecture boundary + dependency-originality guards in lint; dual-face build (host ESM `lib/`, browser classic-script `dist/client.cjs`).

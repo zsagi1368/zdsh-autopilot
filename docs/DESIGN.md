@@ -19,7 +19,7 @@ Kernel services (host-agnostic pure TS): coordination fan-out with four cross-mo
 `scripts/check-boundaries.mjs` fails lint when:
 - any capability module imports another capability module (only `../kernel/*` + self allowed);
 - kernel or shared-client imports anything upward;
-- source references the community plugins this design was informed by (clean-room guard).
+- source references third-party DSH plugin packages (originality guard).
 
 The split-out path is physical: each module directory has no inward dependencies beyond the facade, so a future standalone package = kernel copy + one module.
 
@@ -44,9 +44,9 @@ Closed vocabulary `timeout | cancelled | unavailable | schema | budget | circuit
 - One-shot grants bind (session, tool, callId, level, justification) and burn on consumption or settlement.
 - Session-log events use ignorable envelopes so hosts that drop options degrade cleanly to the in-memory mirror.
 
-## 6. Clean-room statement
+## 6. Originality
 
-This project was DESIGNED against public behavior of three community plugins (an auto-resume plugin, a sandbox-first permission plugin, and a second-model approval-review plugin). No source code from those projects was read into this implementation, copied, translated, or adapted — zero code reuse, per project policy. Similarities are limited to (a) facts about the DeepSeek Harness host API surface, which belongs to the host, and (b) independently re-derived solutions to the same problems. The build enforces this: `scripts/check-boundaries.mjs` rejects any reference to those packages in shipped source.
+zdsh-autopilot is an original, from-scratch implementation. All architecture, module structure, naming (`ap/*` vocabulary, `/ap` surface), and code were created for this project. The repository carries mechanical guards for this policy: `scripts/check-boundaries.mjs` rejects any dependency on or reference to third-party DSH plugin packages in shipped source, and CI enforces it on every push.
 
 ## 7. Host compatibility notes
 

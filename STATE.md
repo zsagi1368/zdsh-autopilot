@@ -20,7 +20,7 @@
 | M6′ 发布 | ✅ 完成 2026-08-24 | eval 引擎+10 用例全过；双轮对抗门禁 0 失败；pack 冒烟通过；v0.1.0 tag + Release |
 | 集成期 | 🔒 冻结 | 用户指令后按 plan/07 E4 执行 |
 
-最终门禁：`pnpm verify` = lint(边界+净室扫描) + typecheck(三 tsconfig) + vitest 134 + 双面构建 + 离线评测 10/10。
+最终门禁：`pnpm verify` = lint(边界+原创性扫描) + typecheck(三 tsconfig) + vitest 134 + 双面构建 + 离线评测 10/10。
 
 ## 关键决策备忘（详见 plan/07）
 
