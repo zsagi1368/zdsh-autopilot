@@ -20,7 +20,7 @@ const BANNED_SUBSTRINGS = [
   '@nanmicoder',
 ];
 
-const MODULES = ['kernel', 'continue', 'guard', 'review', 'console'];
+const MODULES = ['kernel', 'shared-client', 'continue', 'guard', 'review', 'console'];
 const SCAN_DIRS = ['src', 'tests', 'eval', 'corpus', 'scripts', 'bin'];
 const EXTS = ['.ts', '.tsx', '.mts', '.mjs'];
 
@@ -86,10 +86,10 @@ function resolveImport(fromFile, spec) {
 
 function edgeAllowed(fromMod, toMod) {
   if (fromMod === toMod) return true;
-  // Any module may depend on the kernel; nothing may depend downward on it
-  // except as explicitly listed here.
-  if (toMod === 'kernel') return true;
-  if (fromMod === 'kernel') return false; // kernel stays dependency-free upward
+  // Any module may depend on the kernel or the shared client leaf; nothing
+  // may depend downward on them except as explicitly listed here.
+  if (toMod === 'kernel' || toMod === 'shared-client') return true;
+  if (fromMod === 'kernel' || fromMod === 'shared-client') return false;
   // Capability modules must not import each other; console is reached via
   // src/index.ts composition only.
   return false;

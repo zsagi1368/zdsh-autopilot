@@ -79,6 +79,14 @@ export class AutomationCoordinator {
     this.view.circuitOpen = open;
   }
 
+  get paused(): boolean {
+    return this.view.paused;
+  }
+
+  get circuitOpen(): boolean {
+    return this.view.circuitOpen;
+  }
+
   dispatch(event: CoordinationEvent): DispatchOutcome[] {
     // State maintenance first.
     switch (event.kind) {

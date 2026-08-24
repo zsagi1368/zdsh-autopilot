@@ -71,6 +71,7 @@ export interface ContinueModule {
   handleUserMessage(sessionId: string): void;
   handleAssistantMessage(sessionId: string, text: string): void;
   handleToolCall(sessionId: string, toolName: string, argsJson: string): void;
+  noteRecoveredTurn(sessionId: string): void;
   handleToolResult(
     sessionId: string,
     toolName: string,
@@ -207,6 +208,10 @@ export function createContinueModule(deps: CreateContinueModuleDeps): ContinueMo
       if (disposed || !options.enabled) return;
       const guard = guardFor(sessionId);
       if (!isError) guard.feedTool(toolName, argsJson, resultJson);
+    },
+
+    noteRecoveredTurn(sessionId) {
+      scheduler.noteRecoveredTurn(sessionId);
     },
 
     bootScan() {
