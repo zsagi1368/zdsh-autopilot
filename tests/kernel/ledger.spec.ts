@@ -4,7 +4,6 @@ import {
   StatsCounters,
   TurnBudgets,
   effectiveCooldown,
-  systemClock,
 } from '../../src/kernel/ledger.js';
 
 class FakeClock {
@@ -31,7 +30,7 @@ describe('backoff math', () => {
 describe('attempt-before-side-effect accounting', () => {
   it('beginAttempt books the timestamp before the caller acts', () => {
     const clock = new FakeClock();
-    const hub = new LedgerHub(clock, new StatsCounters(systemClock));
+    const hub = new LedgerHub(new StatsCounters(clock));
     const ledger = hub.session('s1', backoff);
 
     // The caller books first, THEN attempts the side effect (which may throw).
@@ -55,7 +54,7 @@ describe('attempt-before-side-effect accounting', () => {
 
   it('failed attempts escalate the next cooldown via consecutive counter', () => {
     const clock = new FakeClock();
-    const hub = new LedgerHub(clock, new StatsCounters(systemClock));
+    const hub = new LedgerHub(new StatsCounters(clock));
     const ledger = hub.session('s1', backoff);
 
     ledger.beginAttempt(clock.now());
@@ -81,7 +80,7 @@ describe('attempt-before-side-effect accounting', () => {
 
   it('user message clears the consecutive counter', () => {
     const clock = new FakeClock();
-    const hub = new LedgerHub(clock, new StatsCounters(systemClock));
+    const hub = new LedgerHub(new StatsCounters(clock));
     const ledger = hub.session('s1', backoff);
     ledger.beginAttempt(clock.now());
     ledger.beginAttempt(clock.now());
@@ -91,7 +90,7 @@ describe('attempt-before-side-effect accounting', () => {
 
   it('closing a session evicts its state', () => {
     const clock = new FakeClock();
-    const hub = new LedgerHub(clock, new StatsCounters(systemClock));
+    const hub = new LedgerHub(new StatsCounters(clock));
     hub.session('gone', backoff);
     hub.closeSession('gone');
     const fresh = hub.session('gone', backoff);
@@ -115,7 +114,7 @@ describe('dual turn budgets', () => {
 
   it('turn lifecycle keys per session and cleans up', () => {
     const clock = new FakeClock();
-    const hub = new LedgerHub(clock, new StatsCounters(systemClock));
+    const hub = new LedgerHub(new StatsCounters(clock));
     const t1 = hub.turn('s1', 'turn-1', 3, 3);
     t1.tryConsumeDecision();
     hub.endTurn('s1', 'turn-1');

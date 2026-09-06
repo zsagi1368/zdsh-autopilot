@@ -24,7 +24,7 @@
 
 ## 关键决策备忘（详见 plan/07）
 
-- 独立包名 `zdsh-autopilot`，行 id `autopilot`；宿主包 devDeps 钉 `0.1.1-rc.2`，peer `>=0.1.0-rc.2 <0.2.0` optional。
+- 独立包名 `zdsh-autopilot`，行 id `autopilot`；宿主包 devDeps 钉 `0.1.2-alpha.4`，peer `>=0.1.0-rc.2 <0.2.0` optional。
 - npm dist-tag `latest` 滞后（0.0.1-rc.1）是已知现象，勿据此改钉子。
 - 共享文件白名单在独立期为 **0**；集成期才启用（web-app patch 一行 + 可选 tsconfig 行）。
 

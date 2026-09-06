@@ -3,7 +3,7 @@ import { apply, name } from '../src/index.js';
 
 describe('loader contract', () => {
   it('exposes the plugin name', () => {
-    expect(name).toBe('zdsh-autopilot');
+    expect(name).toBe('@deepseek-ai/dsh-autopilot');
   });
 
   it('exports an apply function', () => {
