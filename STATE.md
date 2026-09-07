@@ -24,7 +24,8 @@
 
 ## 关键决策备忘（详见 plan/07）
 
-- 独立包名 `zdsh-autopilot`，行 id `autopilot`；宿主包 devDeps 钉 `0.1.2-alpha.4`，peer `>=0.1.0-rc.2 <0.2.0` optional。
+- 独立包名 `zdsh-autopilot`，行 id `autopilot`；宿主包 devDeps 钉 `0.1.2-rc.1`（registry 离 zDSH 0.1.3-alpha.1 基线最近的可复现快照），peer `>=0.1.0-rc.2` optional。
+- **0.1.3-alpha.1 兼容性验证（2026-09-07）**：本仓零编译期 dsh import，类型面兼容平凡；运行时面 6 service key + 4 过滤事件类型经核对 0.1.3 全健在，无 session v2 夹具依赖；`pnpm run verify` 全绿（134 测试 + eval 10/10）。官方发布 0.1.3-alpha.1 到 npm 后机械 bump 即可。
 - npm dist-tag `latest` 滞后（0.0.1-rc.1）是已知现象，勿据此改钉子。
 - 共享文件白名单在独立期为 **0**；集成期才启用（web-app patch 一行 + 可选 tsconfig 行）。
 

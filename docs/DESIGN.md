@@ -50,5 +50,5 @@ zdsh-autopilot is an original, from-scratch implementation. All architecture, mo
 
 ## 7. Host compatibility notes
 
-- Requires DSH ≥ 0.1.0-rc.2 (peer range `<0.2.0`, all optional). Developed and pinned against `0.1.2-alpha.4`.
+- Requires DSH ≥ 0.1.0-rc.2 (peer `>=0.1.0-rc.2`, all optional; manifest carries no upper bound). Developed and pinned against `0.1.2-rc.1` (closest reproducible registry snapshot to the zDSH 0.1.3-alpha.1 baseline; compatibility verified against 0.1.3-alpha.1).
 - Every host-seam assumption is registered in `src/index.ts` probe registrations with feature detection; missing services disable wiring rather than failing startup.
