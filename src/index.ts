@@ -243,43 +243,59 @@ function mount(ctx: AutopilotHostContext): MountedRuntime {
   })
 
   // -- host seams --------------------------------------------------------------------------
-  on?.('session/event', ((payload: SessionEventLike) => {
-    if (!payload.type) return
-    const sessionId = typeof payload.session === 'string' ? payload.session : payload.session?.id ?? ''
-    switch (payload.type) {
+  // Mainline seam shape (TC-B3-33B / B1): `session/event` is a TWO-parameter
+  // event — `(session, event)` — see mainline core/session/src/index.ts:72
+  // and its own consumers acp/src/index.ts:167, api/session-controller/src/index.ts:158.
+  // `event` is a discriminated union `{ type, seq, time, data }`; `turn/end`
+  // carries `data.reason` as the OBJECT union TurnEndReason
+  // `{kind:'completed'|'aborted'|'blocked'|'error'|'max-tokens'|'interrupted'}`
+  // (core/session/src/types.ts:200-224), never a bare string (B1a).
+  on?.('session/event', ((session: SessionRefLike, event: SessionEventLike) => {
+    if (!event || typeof event.type !== 'string') return
+    const sessionId = typeof session?.id === 'string' ? session.id : session?.header?.id ?? ''
+    switch (event.type) {
       case 'turn/start':
         continueModule.handleTurnStart(sessionId)
         break
       case 'turn/end': {
-        const rawReason = asString(payload.data?.['reason'])
-        const known = ['completed', 'error', 'max-tokens', 'aborted', 'blocked'].includes(rawReason)
-          ? (rawReason as 'completed' | 'error' | 'max-tokens' | 'aborted' | 'blocked')
-          : 'completed'
-        if (known === 'completed') continueModule.noteRecoveredTurn(sessionId)
+        const rawReason = event.data?.['reason'] as TurnEndReasonLike | undefined
+        const kind = typeof rawReason?.kind === 'string' ? rawReason.kind : 'completed'
+        if (kind === 'completed') continueModule.noteRecoveredTurn(sessionId)
         else {
+          // 'interrupted' (crash-orphan closer) and future extension kinds land on
+          // detectLive's default → skip/not-eligible: never resumed live, never
+          // mistaken for a recovered turn (B1a: error/max-tokens MUST NOT map to completed).
+          const err = rawReason?.error
+          const failure = err
+            ? {
+                ...(typeof err.code === 'string' ? { code: err.code } : {}),
+                ...(typeof err.message === 'string' ? { message: err.message } : {}),
+                ...(typeof err.status === 'number' ? { status: err.status } : {}),
+              }
+            : undefined
           continueModule.handleTurnEnd(
             sessionId,
-            known,
-            payload.data?.['error'] as { code?: string; message?: string; status?: number } | undefined,
+            kind as 'completed' | 'error' | 'max-tokens' | 'aborted' | 'blocked',
+            failure,
           )
         }
-        kernel.coordinator.dispatch({ kind: 'turn-ended', sessionId, reason: rawReason })
+        kernel.coordinator.dispatch({ kind: 'turn-ended', sessionId, reason: kind })
         break
       }
       case 'user/message':
         continueModule.handleUserMessage(sessionId)
         break
       case 'assistant/message':
-        continueModule.handleAssistantMessage(sessionId, asString(payload.data?.['text']))
+        continueModule.handleAssistantMessage(sessionId, assistantText(event.data))
         break
       case 'approval/asked': {
-        const callId = asString(payload.data?.['callId'])
+        const callId = asString(event.data?.['callId'])
         pendingAsks.add(callId)
         kernel.coordinator.dispatch({
           kind: 'approval-pending',
           sessionId,
           callId,
-          toolName: asString(payload.data?.['toolName']),
+          toolName: asString(event.data?.['toolName']),
         })
         break
       }
@@ -287,7 +303,7 @@ function mount(ctx: AutopilotHostContext): MountedRuntime {
         kernel.coordinator.dispatch({
           kind: 'approval-resolved',
           sessionId,
-          callId: asString(payload.data?.['callId']),
+          callId: asString(event.data?.['callId']),
         })
         break
       default:
@@ -407,10 +423,30 @@ function mount(ctx: AutopilotHostContext): MountedRuntime {
   }
 }
 
+/** Narrow structural view of the mainline Session (first arg of `session/event`). */
+interface SessionRefLike {
+  id?: string
+  header?: { id?: string }
+}
+/** Narrow structural view of the mainline SessionEvent (second arg of `session/event`). */
 interface SessionEventLike {
   type?: string
-  session?: string | { id?: string }
   data?: Record<string, unknown>
+}
+/** Structural mirror of the mainline TurnEndReason object union (core/session/src/types.ts:200-224). */
+interface TurnEndReasonLike {
+  kind?: string
+  error?: { code?: string; message?: string; status?: number }
+}
+/** Concatenate the visible text blocks of an `assistant/message` event payload. */
+function assistantText(data: Record<string, unknown> | undefined): string {
+  const content = (data?.['message'] as { content?: unknown } | undefined)?.content
+  if (!Array.isArray(content)) return ''
+  let out = ''
+  for (const block of content as Array<{ type?: unknown; text?: unknown }>) {
+    if (block && block.type === 'text' && typeof block.text === 'string') out += block.text
+  }
+  return out
 }
 interface ApprovalRequestWire {
   sessionId?: string
