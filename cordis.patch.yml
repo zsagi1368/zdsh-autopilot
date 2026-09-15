@@ -1,4 +1,4 @@
-# zdsh-autopilot bundle patch.
+# dsh-autopilot bundle patch.
 #
 # Contract notes (see PluginR&D plan/03):
 # - This file only INSERTS our own row into the installing profile's loader
@@ -12,7 +12,7 @@
 #   dsh plugin --profile web add link:<path-to-this-checkout>
 - insert:
     - id: autopilot
-      name: zdsh-autopilot
+      name: dsh-autopilot
       config:
         modules:
           continue:

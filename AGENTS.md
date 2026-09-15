@@ -1,4 +1,4 @@
-# AGENTS.md — zdsh-autopilot 开发纪律（人与代理共用）
+# AGENTS.md — dsh-autopilot 开发纪律（人与代理共用）
 
 > 本仓库是 **zDSH AutoPilot** 独立插件：DeepSeek Harness 的统一自动化引擎（断线续跑 / 沙箱优先权限守卫 / 二模型审批复核）。规划全文见 `../plan/00-overview.md`（研究根目录），本文件只放"动手前必须知道"的纪律。
 

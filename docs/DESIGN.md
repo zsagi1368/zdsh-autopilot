@@ -1,4 +1,4 @@
-# DESIGN — zdsh-autopilot
+# DESIGN — dsh-autopilot
 
 > Architecture record for the unified automation engine. Full planning suite lives outside this repo (PluginR&D `plan/00–07`); this file captures what an implementer or reviewer needs.
 
@@ -46,7 +46,7 @@ Closed vocabulary `timeout | cancelled | unavailable | schema | budget | circuit
 
 ## 6. Originality
 
-zdsh-autopilot is an original, from-scratch implementation. All architecture, module structure, naming (`ap/*` vocabulary, `/ap` surface), and code were created for this project. The repository carries mechanical guards for this policy: `scripts/check-boundaries.mjs` rejects any dependency on or reference to third-party DSH plugin packages in shipped source, and CI enforces it on every push.
+dsh-autopilot is an original, from-scratch implementation. All architecture, module structure, naming (`ap/*` vocabulary, `/ap` surface), and code were created for this project. The repository carries mechanical guards for this policy: `scripts/check-boundaries.mjs` rejects any dependency on or reference to third-party DSH plugin packages in shipped source, and CI enforces it on every push.
 
 ## 7. Host compatibility notes
 

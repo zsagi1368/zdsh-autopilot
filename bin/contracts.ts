@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * zdsh-autopilot offline behavior-contract runner (executed via tsx).
+ * dsh-autopilot offline behavior-contract runner (executed via tsx).
  *
  * Usage: pnpm run contracts [glob]
  * Exit code 0 iff every assertion in every case passes. No API key, no live

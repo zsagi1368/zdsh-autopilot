@@ -1,4 +1,4 @@
-// Architecture boundary + originality guard for zdsh-autopilot.
+// Architecture boundary + originality guard for dsh-autopilot.
 //
 // Rule 1 (originality): the source tree must never reference or depend on
 //   third-party DSH plugin packages. This project is standalone by design.

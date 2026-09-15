@@ -1,5 +1,5 @@
 {
-  "name": "zdsh-autopilot",
+  "name": "dsh-autopilot",
   "version": "0.1.0",
   "description": "zDSH AutoPilot — unified automation engine for DeepSeek Harness: interruption auto-resume, sandbox-first auto permission policy, and second-model approval review behind one kernel and one console.",
   "license": "MIT",
