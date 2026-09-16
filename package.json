@@ -48,6 +48,48 @@
     "LICENSE"
   ],
   "dsh": {
+    "compatible": ">=0.1.5-rc.2 <0.2.0",
+    "autoApprove": true,
+    "capabilities": [
+      {
+        "type": "service",
+        "service": {
+          "name": "dsh-autopilot/server",
+          "factory": "./lib/index.js",
+          "singleton": true
+        }
+      }
+    ],
+    "sandbox": {
+      "type": "inline",
+      "resources": {
+        "memoryLimitMb": 512,
+        "cpuLimit": 50,
+        "timeoutMs": 120000,
+        "maxOutputBytes": 1000000
+      },
+      "filesystem": {
+        "access": "readonly",
+        "allowedPaths": [],
+        "deniedPatterns": []
+      },
+      "network": {
+        "access": "none",
+        "allowedHosts": [],
+        "deniedHosts": [],
+        "allowLocal": false
+      },
+      "environment": {
+        "whitelist": [],
+        "blacklist": [],
+        "clear": false
+      },
+      "process": {
+        "spawn": false,
+        "exec": false,
+        "allowedCommands": []
+      }
+    },
     "bundle": {
       "patch": "./cordis.patch.yml"
     },
