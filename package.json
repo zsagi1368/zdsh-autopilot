@@ -157,7 +157,7 @@
     "zod": "^4.4.3"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && tsdown",
+    "build": "tsc -p tsconfig.json && tsdown && node scripts/assert-client-banner-handshake.mjs",
     "build:client": "tsdown",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.client.json --noEmit && tsc -p tsconfig.tests.json --noEmit",
     "test": "vitest run",
