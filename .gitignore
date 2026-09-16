@@ -8,4 +8,30 @@ coverage/
 .env.*
 .DS_Store
 *.tgz
+
+# Prebuilt artifacts are committed (TC-B3-33C2 / DESIGN §8-P-9 Option A, following
+# the 31C/2.1a whitelist precedent): the two rules above are inverted by targeted
+# negation for THIS package's build output only. The repo is single-package
+# (pnpm-workspace.yaml `packages: [.]`), so there is no other package's rule to
+# disturb and no foreign path can leak in. Both halves must go in whole, or a
+# git+pin snapshot ships a factory that cannot load:
+#   lib/**  — tsc ESM tree. lib/index.js relative-imports ./kernel/facade.js,
+#             ./kernel/ledger.js, ./continue/index.js, ./guard/index.js,
+#             ./review/index.js, ./console/bridge.js and ./console/commands.js
+#             (transitively the rest of the tree), so a FileHub-style single-file
+#             `!lib/index.js` whitelist would re-create the P-9 broken-chain
+#             failure one level down. AutoPilot has no bundler on the server half.
+#   dist/** — tsdown client bundle; dist/client.cjs is exactly what exports
+#             "./client" points at and what the web client hands to __ModuleLoader__.
+# Together they give the git+pin install an offline first-boot product (A-1.1.1).
+!lib/
+!dist/
+# Source maps stay excluded — not needed at runtime, and they were the release-size
+# offender in the FileHub precedent (contract-filehub §5 P05). tsconfig `sourceMap:
+# false` + tsdown `sourcemap: false` emit none today; this line keeps a future flag
+# flip from silently widening the committed tree.
+lib/**/*.map
+dist/**/*.map
+
+# Backup area (deletion right belongs to user, agents never clean it)
 del/
