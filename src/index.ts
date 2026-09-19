@@ -311,44 +311,41 @@ function mount(ctx: AutopilotHostContext): MountedRuntime {
     }
   }))
 
-  // Approval waterfall: review claims ai-policy tools; the guard's one-shot
-  // grant bridge answers escalations exactly once; everything else falls to
-  // the official chain via next().
+  // Approval waterfall (ADJ4-B): review claims ai-policy tools; the guard's
+  // one-shot grant bridge answers escalations exactly once; everything else
+  // falls through to the official chain via next(). This is a TRUE answerer:
+  // the returned value flows back through `ApprovalService.request()` — the
+  // closed `ApprovalOutcome` vocabulary or `next()` abstention, per the acp
+  // precedent (mainline acp/src/index.ts:189-205).
   on?.(
     'approval/request',
-    ((req: ApprovalRequestWire, next: () => Promise<string>) => {
-      void (async () => {
-        try {
-          const sessionId = req.sessionId ?? req.agent?.id ?? ''
-          type Outcome = 'allowed-once' | 'rejected' | 'cancelled' | 'unavailable' | 'delegate'
-          let outcome: Outcome = 'delegate'
-          if (flags.review) {
-            outcome = await review.handleApprovalRequest({
-              sessionId,
-              agentSessionId: req.agent?.id ?? '',
-              callId: req.callId ?? '',
-              toolName: req.toolName ?? '',
-              reason: req.reason ?? '',
-              turnId: req.turn ?? 'current',
-            })
-          }
-          if (outcome === 'delegate' || outcome === 'unavailable') {
-            const grantVerdict =
-              flags.guard && req.callId !== undefined ? guard.handleApprovalRequest({ callId: req.callId, toolName: req.toolName ?? '' }) : undefined
-            if (grantVerdict === undefined) await next()
-            return undefined as unknown as string
-          }
-          // Outcome value flows back through the waterfall listener contract.
-          return outcome as unknown as string
-        } catch {
-          try {
-            await next()
-          } catch {
-            /* chain already closed */
-          }
-          return undefined as unknown as string
+    (async (req: ApprovalRequestWire, next: () => Promise<ApprovalOutcome>) => {
+      // Abstention is the safety baseline: any delegate-shaped outcome, any
+      // thrown error, or a missing host falls through to the official chain
+      // (never silently claim a grant). Constraint 3/5 (ADJ4-B).
+      let outcome: ApprovalOutcome | 'delegate' = 'delegate'
+      if (flags.review) {
+        outcome = await review.handleApprovalRequest({
+          sessionId: req.sessionId ?? req.agent?.id ?? '',
+          agentSessionId: req.agent?.id ?? '',
+          callId: req.callId ?? '',
+          toolName: req.toolName ?? '',
+          reason: req.reason ?? '',
+          turnId: req.turn ?? 'current',
+        })
+      }
+      if (outcome === 'delegate' || outcome === 'unavailable') {
+        if (flags.guard && req.callId !== undefined) {
+          const grantVerdict = guard.handleApprovalRequest({ callId: req.callId, toolName: req.toolName ?? '' })
+          if (grantVerdict === 'allowed-once') return grantVerdict
         }
-      })()
+        // Review/guard both abstained: delegate to the official chain (UI/
+        // human answerers). The abstention return IS next()'s promise.
+        return next()
+      }
+      // Review decided: 'allowed-once' | 'rejected' | 'cancelled' are the
+      // closed answerer vocabulary — the value answers the waterfall seam.
+      return outcome
     }),
     { prepend: true },
   )
@@ -456,6 +453,12 @@ interface ApprovalRequestWire {
   reason?: string
   turn?: string
 }
+/**
+ * The mainline closed answerer vocabulary (user-approval OUTCOMES :48): the
+ * only legal return values of an 'approval/request' waterfall answerer.
+ * 'allowed-once' is the sole grant; the seam fail-closes anything rogue.
+ */
+type ApprovalOutcome = 'allowed-once' | 'rejected' | 'cancelled' | 'unavailable'
 interface ToolExecWire {
   sessionId?: string
   callId?: string
