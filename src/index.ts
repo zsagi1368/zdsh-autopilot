@@ -31,6 +31,18 @@ const require_ = createRequire(import.meta.url)
 export interface AutopilotHostContext {
   get?(key: string): unknown
   on?(event: string, listener: (...args: never[]) => unknown, options?: { prepend?: boolean }): () => void
+  /**
+   * The host cordis fiber effect face (`ctx.effect(setup, label?)`): `setup`
+   * runs IMMEDIATELY and its return value is the disposer collected for fiber
+   * unload (lib/types/fiber.d.ts `effect(execute: () => SyncEffect, label?)`).
+   * RA1d (B3): route disposers returned by `webServer.register` MUST flow
+   * through this seam — apply's return object is dropped by the cordis
+   * constructor path, so a bare stored disposer would never run on unload.
+   * Optional: plain-object contexts (unit tests, bare hosts) carry no
+   * `effect`; the register return is also captured on the mounted runtime's
+   * dispose for direct-call consumers (FileHub aab73d7 form).
+   */
+  effect?(setup: () => (() => void) | Iterable<() => void>, label?: string): unknown
 }
 
 export interface MountedRuntime {
@@ -56,9 +68,15 @@ export function apply(ctx: AutopilotHostContext): void {
   }
 }
 
-interface BridgeRequestLike {
-  headers(): Record<string, string>
-  text(): Promise<string>
+/** Wire structural views of the mainline WebRoute handler contract (host/webserver/src/index.ts:47). */
+interface WebRouteHandlerReqLike {
+  method?: string
+  url?: string
+  headers: Record<string, string | string[] | undefined>
+}
+interface WebRouteHandlerResLike {
+  writeHead(status: number, headers?: Record<string, string>): unknown
+  end(body?: string): unknown
 }
 
 /** Coerce an unknown session-event field to display text without object leakage. */
@@ -79,7 +97,7 @@ function mount(ctx: AutopilotHostContext): MountedRuntime {
   const agentsService = getService('agents') as { get(sessionId: string): { followup(message: unknown): Promise<void> } | undefined } | undefined
   const subagents = getService('subagents') as { start(provider: string, options: Record<string, unknown>): { result?: Promise<unknown> } } | undefined
   const commands = getService('commands') as { register(definition: Record<string, unknown>): void } | undefined
-  const webServer = getService('webServer') as { register(definition: Record<string, unknown>): void } | undefined
+  const webServer = getService('webServer') as { register(definition: Record<string, unknown>): () => void } | undefined
 
   const kernel = createKernel({ rng: createTokenSource() })
 
@@ -390,24 +408,58 @@ function mount(ctx: AutopilotHostContext): MountedRuntime {
   })
 
   // Status/action HTTP bridge with token-or-same-origin authorization.
+  // B3: the mainline WebRoute contract (host/webserver/src/index.ts:38-47) is
+  // `handler(req: IncomingMessage, res: ServerResponse) => void` — the handler
+  // OWNS the full response lifecycle (writeHead + end), reads body off the
+  // native async-iterable request stream, and reads headers via the plain
+  // lowercase `req.headers` object. No return-value shape, no `req.text()`/
+  // `req.headers()` Express-like helpers (those would TypeError on a real host).
   const bridgeToken = `apt_${Date.now().toString(36)}_${createTokenSource().token()}`
-  webServer?.register({
-    kind: 'exact',
-    path: '/api/autopilot-action',
-    handler: async (req: unknown) => {
-      const bridgeReq = req as BridgeRequestLike
-      const authorize = (payloadText: unknown) => authorizeAction(bridgeReq, payloadText, bridgeToken)
-      const verdict = performBridgeAction(await bridgeReq.text(), consoleState, authorize, {
-        resumeSession: (id) =>{  continueModule.resumeSession(id) },
-        pauseSession: (id, ms) =>{  continueModule.pauseSession(id, ms) },
-        approveLatest: () => {
-          review.approveNext(latestDeniedTool)
-          return true
-        },
-      })
-      return { status: verdict.ok ? 200 : 403, json: verdict }
-    },
-  })
+  const sendJson = (res: WebRouteHandlerResLike, status: number, payload: unknown): void => {
+    res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify(payload))
+  }
+
+  const actionHandler = async (req: unknown, res: unknown): Promise<void> => {
+    const nodeReq = req as WebRouteHandlerReqLike
+    const nodeRes = res as WebRouteHandlerResLike
+    if (nodeReq.method !== 'POST') {
+      sendJson(nodeRes, 405, { ok: false, error: 'method not allowed' })
+      return
+    }
+    let body = ''
+    try {
+      for await (const chunk of req as AsyncIterable<unknown>) {
+        if (typeof chunk === 'string') body += chunk
+        else if (chunk && typeof (chunk as Buffer).toString === 'function') body += (chunk as Buffer).toString('utf8')
+      }
+    } catch {
+      sendJson(nodeRes, 400, { ok: false, error: 'bad request body' })
+      return
+    }
+    const authorize = (payloadText: unknown) => authorizeAction(nodeReq, payloadText, bridgeToken)
+    const verdict = performBridgeAction(body, consoleState, authorize, {
+      resumeSession: (id) =>{  continueModule.resumeSession(id) },
+      pauseSession: (id, ms) =>{  continueModule.pauseSession(id, ms) },
+      approveLatest: () => {
+        review.approveNext(latestDeniedTool)
+        return true
+      },
+    })
+    sendJson(nodeRes, verdict.ok ? 200 : 403, verdict)
+  }
+
+  let unregisterActionRoute: (() => void) | undefined
+  if (webServer !== undefined) {
+    unregisterActionRoute = webServer.register({
+      kind: 'exact',
+      path: '/api/autopilot-action',
+      handler: actionHandler,
+    })
+    // RA1d: collect the route disposer through the fiber effect seam so a
+    // real host unloads the route on fiber dispose (FileHub aab73d7 form).
+    ctx.effect?.(() => () => { unregisterActionRoute?.() }, 'autopilot-action-route')
+  }
 
   return {
     kernel,
@@ -416,6 +468,8 @@ function mount(ctx: AutopilotHostContext): MountedRuntime {
       reviewerSessionTags.clear()
       pendingAsks.clear()
       pendingFeedback.clear()
+      unregisterActionRoute?.()
+      unregisterActionRoute = undefined
     },
   }
 }
@@ -466,13 +520,19 @@ interface ToolExecWire {
   arguments?: unknown
 }
 
-function authorizeAction(req: BridgeRequestLike, payloadText: unknown, expectedToken: string): boolean {
+function authorizeAction(req: WebRouteHandlerReqLike, payloadText: unknown, expectedToken: string): boolean {
   if (typeof payloadText === 'string' && payloadText.length > 4096) return false
-  const headers = req.headers()
-  const tokenHeader = headers['x-autopilot-token'] ?? ''
+  // B3: native Node req — headers is a plain lowercase-keyed object, not a
+  // method. First value wins when a client repeats a header (node http shape).
+  const first = (name: string): string | undefined => {
+    const value = req.headers[name]
+    if (Array.isArray(value)) return value[0]
+    return value
+  }
+  const tokenHeader = first('x-autopilot-token') ?? ''
   if (tokenHeader.length > 0) return tokenHeader === expectedToken
-  const origin = headers['origin']
-  if (origin !== undefined && origin.length > 0) return sameOrigin(headers['host'], origin)
+  const origin = first('origin')
+  if (origin !== undefined && origin.length > 0) return sameOrigin(first('host'), origin)
   return true // same-origin local UI without Origin header
 }
 
