@@ -461,6 +461,41 @@ function mount(ctx: AutopilotHostContext): MountedRuntime {
     ctx.effect?.(() => () => { unregisterActionRoute?.() }, 'autopilot-action-route')
   }
 
+  // B9: the client status panel fetches GET /api/autopilot-bridge
+  // (src/client/index.ts refreshStatus, dist/client.cjs:105) — before this
+  // registration existed, the host answered 404 and the panel never rendered
+  // state. The response shape is the BridgeSnapshot vocabulary the client's
+  // safeParse consumes: version, paused, circuitOpen, modules, today, recent.
+  const bridgeHandler = (req: unknown, res: unknown): void => {
+    const nodeReq = req as WebRouteHandlerReqLike
+    const nodeRes = res as WebRouteHandlerResLike
+    if (nodeReq.method !== 'GET') {
+      sendJson(nodeRes, 405, { ok: false, error: 'method not allowed' })
+      return
+    }
+    if (!authorizeAction(nodeReq, undefined, bridgeToken)) {
+      sendJson(nodeRes, 403, { ok: false, error: 'unauthorized' })
+      return
+    }
+    sendJson(nodeRes, 200, {
+      version: 1,
+      paused: consoleState.paused,
+      circuitOpen: consoleState.status().circuitOpen,
+      modules: consoleState.status().modules,
+      today: consoleState.status().today,
+      recent: consoleState.recentActions(),
+    })
+  }
+  let unregisterBridgeRoute: (() => void) | undefined
+  if (webServer !== undefined) {
+    unregisterBridgeRoute = webServer.register({
+      kind: 'exact',
+      path: '/api/autopilot-bridge',
+      handler: bridgeHandler,
+    })
+    ctx.effect?.(() => () => { unregisterBridgeRoute?.() }, 'autopilot-bridge-route')
+  }
+
   return {
     kernel,
     consoleState,
@@ -470,6 +505,8 @@ function mount(ctx: AutopilotHostContext): MountedRuntime {
       pendingFeedback.clear()
       unregisterActionRoute?.()
       unregisterActionRoute = undefined
+      unregisterBridgeRoute?.()
+      unregisterBridgeRoute = undefined
     },
   }
 }
