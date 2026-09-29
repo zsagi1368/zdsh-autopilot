@@ -19,7 +19,7 @@ export default defineConfig({
   minify: false,
   sourcemap: false,
   dts: false,
-  external: [/^@deepseek-ai\//, /^react($|\/)/, /^react-dom($|\/)/],
+  deps: { neverBundle: [/^@deepseek-ai\//, /^react($|\/)/, /^react-dom($|\/)/] },
   banner: `window.__ModuleLoader__.load({ id: ${JSON.stringify(LOADER_ID)}, factory: function (require, module, exports) {\n`,
   footer: `\n} });`,
 });
