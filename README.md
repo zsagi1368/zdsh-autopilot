@@ -31,7 +31,7 @@ Everything shares one accounting model (attempts are booked before side effects;
 
 | | |
 |---|---|
-| DeepSeek Harness | `>= 0.1.0-rc.2`, `< 0.2.0` |
+| DeepSeek Harness | `>= 0.1.5-rc.2`, `< 0.3.0` |
 | Node (host) | `>= 22` |
 | Platforms | Windows / macOS / Linux (path judgment hardened for Windows first) |
 
