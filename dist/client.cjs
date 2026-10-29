@@ -1,4 +1,4 @@
-window.__ModuleLoader__.load({ id: "dsh-autopilot", factory: function (require, module, exports) {
+window.__ModuleLoader__.load({ id: "dsh-autopilot", factory: (require) => { var module = { exports: {} }; var exports = module.exports;
 
 Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
 //#region src/shared-client/locales.ts
@@ -181,5 +181,4 @@ function safeParse(text) {
 exports.createConsoleFiber = createConsoleFiber;
 exports.inject = inject;
 exports.name = name;
-
-} });
+return module.exports; } });

@@ -83,6 +83,26 @@ assert(
   'dist/client.cjs must close with the module-loader footer',
 );
 
+// 6. Factory signature must match the CURRENT loader contract (zDSH-Go
+//    packages/client/modules/src/client/system.ts:311): the loader calls
+//    factory(require) with ONE argument and takes the RETURN VALUE as exports,
+//    so the bundle must open with the self-built module scaffold and close by
+//    returning it. The legacy `factory: function (require, module, exports)`
+//    banner relied on parameters the loader never passes — on the browser it
+//    died at Object.defineProperty(undefined) and took the whole client boot
+//    down with it (2026-10-28 实证, ZDSH-LESSONS Z1).
+assert(
+  'handshake.factory-single-arg-contract',
+  dist.includes('factory: (require) => { var module = { exports: {} }; var exports = module.exports;')
+    && !dist.includes('factory: function (require, module, exports)'),
+  'bundle must build its own module scaffold and return it (single-arg factory contract)',
+);
+assert(
+  'handshake.footer-returns-exports',
+  dist.trimEnd().endsWith('return module.exports; } });'),
+  'footer must return module.exports so the loader takes it as the exports value',
+);
+
 const failed = results.filter((r) => !r.ok);
 console.log(`[handshake] ${results.length - failed.length}/${results.length} assertions passed`);
 if (failed.length > 0) {
