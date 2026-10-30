@@ -95,6 +95,24 @@ const en = {
 */
 const name = "@deepseek-ai/dsh-autopilot";
 const inject = ["slots", "locale"];
+/**
+* Top-level client entry (the shape the web loader's cordis registry requires:
+* an object with an `apply` method). The web client is same-origin with the
+* host, so the bridge adapters are plain same-origin fetch wrappers; the
+* action token arrives with the host's first bridge response and is carried
+* in the action body from there. Before this entry existed the bundle
+* exported only the fiber factory, which the loader rejects as
+* "invalid plugin … received object" and the whole client boot failed
+* (2026-10-30 实证).
+*/
+function apply(ctx) {
+	createConsoleFiber({
+		fetchText: async (url, init) => {
+			return await (await fetch(url, init)).text();
+		},
+		actionToken: () => void 0
+	}).apply(ctx);
+}
 function createConsoleFiber(adapters) {
 	let locale;
 	function lookup(dict, key) {
@@ -178,6 +196,7 @@ function safeParse(text) {
 }
 
 //#endregion
+exports.apply = apply;
 exports.createConsoleFiber = createConsoleFiber;
 exports.inject = inject;
 exports.name = name;

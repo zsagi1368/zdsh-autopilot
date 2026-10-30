@@ -32,6 +32,34 @@ export interface ConsoleClientAdapters {
   actionToken(): string | undefined
 }
 
+/**
+ * Top-level client entry (the shape the web loader's cordis registry requires:
+ * an object with an `apply` method). The web client is same-origin with the
+ * host, so the bridge adapters are plain same-origin fetch wrappers; the
+ * action token arrives with the host's first bridge response and is carried
+ * in the action body from there. Before this entry existed the bundle
+ * exported only the fiber factory, which the loader rejects as
+ * "invalid plugin … received object" and the whole client boot failed
+ * (2026-10-30 实证).
+ */
+export function apply(ctx: {
+  locale?: {
+    register(ns: string, dict: { zh: typeof zh; en: typeof en }): void
+    bind(ns: string): (key: string, params?: Record<string, string>) => string
+  }
+  slots?: { inject(slot: string, register: () => unknown): void }
+  effect?(fn: () => void | (() => void), name: string): void
+}): void {
+  const fiber = createConsoleFiber({
+    fetchText: async (url, init) => {
+      const response = await fetch(url, init)
+      return await response.text()
+    },
+    actionToken: () => undefined,
+  })
+  fiber.apply(ctx)
+}
+
 export function createConsoleFiber(adapters: ConsoleClientAdapters) {
   let locale: ((key: LocaleKey, params?: Record<string, string>) => string) | undefined
 
